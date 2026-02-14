@@ -51,7 +51,7 @@ const CustomRadio = ({ label, options, value, onChange }) => (
         const isSelected = value === opt.value;
         return (
           <div key={opt.value} onClick={() => onChange(opt.value)} className={`flex items-center p-4 rounded-xl cursor-pointer transition-all border-2 ${isSelected ? 'bg-slate/5 border-slate' : 'bg-paper border-pebble'}`}>
-            <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center mr-3 ${isSelected ? 'bg-slate border-slate' : 'bg-white border-mist'}`}>
+            <div className={`shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center mr-3 ${isSelected ? 'bg-slate border-slate' : 'bg-white border-mist'}`}>
               <div className={`w-2.5 h-2.5 rounded-full bg-white transition-transform ${isSelected ? 'scale-100' : 'scale-0'}`} />
             </div>
             <span className={`text-sm ${isSelected ? 'text-slate font-bold' : 'text-obsidian'}`}>{opt.label}</span>
@@ -370,7 +370,7 @@ export default function App() {
 
           <div className="p-6 rounded-[1.5rem] bg-oatmeal/60 border border-pebble mt-10">
             <p className="text-xs text-smoke leading-relaxed mb-4">為了保障您的資料所有權與後續維護的便利性，我會將所有的程式碼、資料庫及部屬設定使用 Google 帳號註冊儲存庫。您可以新申請一個專用的 Gmail ，結案後您可以自行更改密碼，這能確保網頁的所有權永遠屬於您</p>
-            <CustomCheckbox label="我已了解並同意資料與帳號歸屬政策" checked={formData.dataOwnership} onChange={(c) => setFormData({ ...formData, dataOwnership: c })} />
+            <CustomCheckbox label="我已了解並同意" checked={formData.dataOwnership} onChange={(c) => setFormData({ ...formData, dataOwnership: c })} />
           </div>
 
           <div className="mt-12 flex justify-end">

@@ -77,5 +77,13 @@ All notable changes to this project will be documented in this file.
 ### Changed
 - Refined the copy button UI with a thicker border and improved active state feedback.
 
+## [1.2.2] - 2026-02-15
+
+### Fixed
+- Fixed radio button circle distortion by adding `shrink-0` to the icon container, ensuring it maintains its shape even with long text descriptions.
+
+### Changed
+- Simplified the consent checkbox label from "我已了解並同意資料與帳號歸屬政策" to "**我已了解並同意**".
+
 ---
-修正了 GitHub Pages 子路徑下的資源讀取錯誤 (404)，並進一步強化了 LINE ID 複製按鈕的相容性與穩定性。
+修正了單選按鈕圖示在長文字下會變形的視覺問題，並簡化了同意政策的按鈕文字。
