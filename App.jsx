@@ -205,30 +205,43 @@ export default function App() {
               <span className="text-2xl font-black tracking-tight text-obsidian select-all">@366qwylw</span>
             </div>
             <button
-              onClick={async () => {
+              onClick={(e) => {
+                e.preventDefault();
                 const text = "@366qwylw";
-                try {
-                  if (navigator.clipboard && window.isSecureContext) {
-                    await navigator.clipboard.writeText(text);
-                  } else {
-                    // Fallback for older browsers or non-secure contexts
+
+                // 優先使用新 API
+                if (navigator.clipboard && window.isSecureContext) {
+                  navigator.clipboard.writeText(text)
+                    .then(() => showAlert("已複製 LINE ID"))
+                    .catch(() => fallbackCopy(text));
+                } else {
+                  fallbackCopy(text);
+                }
+
+                function fallbackCopy(val) {
+                  try {
                     const textArea = document.createElement("textarea");
-                    textArea.value = text;
+                    textArea.value = val;
                     textArea.style.position = "fixed";
-                    textArea.style.left = "-999999px";
-                    textArea.style.top = "-999999px";
+                    textArea.style.left = "-9999px";
+                    textArea.style.top = "-9999px";
                     document.body.appendChild(textArea);
                     textArea.focus();
                     textArea.select();
-                    document.execCommand('copy');
-                    textArea.remove();
+                    const successful = document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    if (successful) {
+                      showAlert("已複製 LINE ID");
+                    } else {
+                      window.alert("複製失敗，請手動輸入：" + val);
+                    }
+                  } catch (err) {
+                    window.alert("複製失敗，請手動輸入：" + val);
                   }
-                  showAlert("已複製 LINE ID");
-                } catch (err) {
-                  console.error('Failed to copy: ', err);
                 }
               }}
-              className="relative z-10 w-12 h-12 rounded-full border border-pebble flex items-center justify-center text-mist hover:bg-pebble/30 transition-colors active:scale-90"
+              className="relative z-[20] w-12 h-12 rounded-full border-2 border-pebble flex items-center justify-center text-mist hover:bg-pebble/30 active:scale-95 transition-all cursor-pointer pointer-events-auto"
+              style={{ touchAction: 'manipulation' }}
             >
               <Copy size={20} />
             </button>

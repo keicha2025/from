@@ -67,5 +67,15 @@ All notable changes to this project will be documented in this file.
 - **Affected Files**: `vite.config.js`, `.github/workflows/deploy.yml`.
 - **Deployment URL**: https://keicha2025.github.io/from/
 
+## [1.2.1] - 2026-02-15
+
+### Fixed
+- Fixed 404 errors for `vite.svg` and assets by converting absolute paths to relative paths in `index.html`.
+- Improved copy-to-clipboard reliability with a more robust fallback and added `window.alert` for critical failure cases.
+- Ensured the copy button is interactive across all mobile environments by setting explicit pointer events and touch actions.
+
+### Changed
+- Refined the copy button UI with a thicker border and improved active state feedback.
+
 ---
-配置了 GitHub Actions 自動化部署流程，並修正了 Vite 的基底路徑以支援 GitHub Pages 託管。
+修正了 GitHub Pages 子路徑下的資源讀取錯誤 (404)，並進一步強化了 LINE ID 複製按鈕的相容性與穩定性。
