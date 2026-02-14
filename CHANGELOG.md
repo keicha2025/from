@@ -22,6 +22,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 - Resolved Tailwind CSS v4 and PostCSS configuration errors by installing `@tailwindcss/postcss` and updating `postcss.config.js`.
 - Fixed `ReferenceError: Send is not defined` in `ConfirmDialog`.
+- Fixed copy-to-clipboard functionality by adding a fallback for non-secure contexts (HTTP) or older browsers.
 
 ### Added
 - Implemented custom `AlertDialog` component to replace native browser `alert()` for better brand consistency.

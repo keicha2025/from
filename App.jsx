@@ -205,11 +205,30 @@ export default function App() {
               <span className="text-2xl font-black tracking-tight text-obsidian select-all">@366qwylw</span>
             </div>
             <button
-              onClick={() => {
-                navigator.clipboard.writeText("@366qwylw");
-                showAlert("已複製 LINE ID");
+              onClick={async () => {
+                const text = "@366qwylw";
+                try {
+                  if (navigator.clipboard && window.isSecureContext) {
+                    await navigator.clipboard.writeText(text);
+                  } else {
+                    // Fallback for older browsers or non-secure contexts
+                    const textArea = document.createElement("textarea");
+                    textArea.value = text;
+                    textArea.style.position = "fixed";
+                    textArea.style.left = "-999999px";
+                    textArea.style.top = "-999999px";
+                    document.body.appendChild(textArea);
+                    textArea.focus();
+                    textArea.select();
+                    document.execCommand('copy');
+                    textArea.remove();
+                  }
+                  showAlert("已複製 LINE ID");
+                } catch (err) {
+                  console.error('Failed to copy: ', err);
+                }
               }}
-              className="w-12 h-12 rounded-full border border-pebble flex items-center justify-center text-mist hover:bg-pebble/30 transition-colors"
+              className="relative z-10 w-12 h-12 rounded-full border border-pebble flex items-center justify-center text-mist hover:bg-pebble/30 transition-colors active:scale-90"
             >
               <Copy size={20} />
             </button>
