@@ -361,11 +361,10 @@ export default function App() {
 
           <SectionTitle number="04" title="預算投入" />
           <CustomRadio label="預算範圍" options={[
-            { l: 'NT$ 1500 （僅首頁）', v: '1500' },
+            { l: 'NT$ 1500 (僅首頁)', v: '1500' },
             { l: 'NT$ 5,000 以下 (入門)', v: 'under_5000' },
-            { l: 'NT$ 5,000 - 15,000 (標竿)', v: '5000_15000' },
-            { l: 'NT$ 15,000 - 30,000 (商務)', v: '15000_30000' },
-            { l: 'NT$ 30,000 以上 (全客製)', v: 'above_30000' }
+            { l: 'NT$ 5,000 - 15,000 (基本)', v: '5000_15000' },
+            { l: 'NT$ 15,000 以上 (客製)', v: 'above_15000' }
           ].map(o => ({ label: o.l, value: o.v }))} value={formData.budget} onChange={(v) => setFormData({ ...formData, budget: v })} />
 
           <div className="p-6 rounded-[1.5rem] bg-oatmeal/60 border border-pebble mt-10">
