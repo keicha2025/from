@@ -53,5 +53,18 @@ All notable changes to this project will be documented in this file.
 - **Affected Files**: `.gitignore`.
 - **Side Effects**: Cleaner repository structure.
 
+## [1.2.0] - 2026-02-15
+
+### Added
+- Integrated GitHub Actions for automated deployment to GitHub Pages.
+- Created `.github/workflows/deploy.yml` to automate the build and deploy process.
+
+### Changed
+- Configured `base: '/from/'` in `vite.config.js` to support GitHub Pages sub-path hosting.
+
+### Technical Details
+- **Affected Files**: `vite.config.js`, `.github/workflows/deploy.yml`.
+- **Deployment URL**: https://keicha2025.github.io/from/
+
 ---
-新增了 .gitignore 並移除遠端倉庫中不必要的 node_modules 以優化專案體積。
+配置了 GitHub Actions 自動化部署流程，並修正了 Vite 的基底路徑以支援 GitHub Pages 託管。
