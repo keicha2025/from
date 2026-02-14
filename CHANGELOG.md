@@ -42,3 +42,16 @@ All notable changes to this project will be documented in this file.
 
 ---
 本次重構了整體 UI 結構以符合範本，修補了 Tailwind 4 的相容性問題，並將所有提示視窗改為自定義組件，同時根據需求修正了大量文案與功能細節。
+
+## [1.1.1] - 2026-02-15
+
+### Fixed
+- Removed `node_modules` from remote repository tracking to optimize repository size.
+- Added `.gitignore` file to prevent tracking of build artifacts and environment files.
+
+### Technical Details
+- **Affected Files**: `.gitignore`.
+- **Side Effects**: Cleaner repository structure.
+
+---
+新增了 .gitignore 並移除遠端倉庫中不必要的 node_modules 以優化專案體積。
