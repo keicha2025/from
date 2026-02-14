@@ -1,0 +1,561 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { Check, ChevronRight, AlertCircle, Loader2, Send, X } from 'lucide-react';
+
+/**
+* ------------------------------------------------------------------
+* 🎨 品牌色調設定 (Brand Theme)
+* 嚴格遵循限制中的色碼
+* ------------------------------------------------------------------
+*/
+const theme = {
+slate: '#4a6161', // 主要按鈕、品牌識別
+mist: '#8a9a9a', // 次要按鈕、圖示
+sandstone: '#a69d93', // 強調標籤
+oatmeal: '#f2f2ef', // 背景底色
+paper: '#fafaf9', // 卡片容器
+pebble: '#e0e0dc', // 分隔線
+obsidian: '#3d4242', // 主要標題
+smoke: '#8c9191', // 輔助文字
+sage: '#8e9e94', // 成功狀態
+blush: '#b59393' // 錯誤/警示
+};
+
+/**
+* ------------------------------------------------------------------
+* ⚙️ 設定區塊 (Configuration)
+* ------------------------------------------------------------------
+*/
+// TODO: 請在此填入您的 Google Apps Script 部署網址
+const GAS_URL = "";
+
+/**
+* ------------------------------------------------------------------
+* 🧩 客製化 UI 元件 (Custom Components)
+* 遵循 M3 指引，完全替換原生瀏覽器元件
+* ------------------------------------------------------------------
+*/
+
+// 1. 客製化輸入框 (Floating Label style or Filled style)
+const CustomInput = ({ label, value, onChange, placeholder, type = "text", required = false, multiline = false }) => {
+const [focused, setFocused] = useState(false);
+
+return (
+<div className="mb-6 relative group">
+    <label className={`block text-sm font-medium mb-2 transition-colors duration-200 ${focused ? 'text-slate'
+        : 'text-obsidian' }`}>
+        {label} {required && <span style={{ color: theme.blush }}>*</span>}
+    </label>
+    <div className={`relative rounded-xl overflow-hidden transition-all duration-300 border-2 ${focused
+        ? 'border-slate bg-white' : 'border-transparent bg-pebble/30 hover:bg-pebble/50' }`}>
+        {multiline ? (
+        <textarea className="w-full p-4 bg-transparent outline-none text-obsidian min-h-[120px] resize-y" value={value}
+            onChange={(e)=> onChange(e.target.value)}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
+            placeholder={placeholder}
+          />
+        ) : (
+          <input
+            type={type}
+            className="w-full p-4 bg-transparent outline-none text-obsidian"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
+            placeholder={placeholder}
+          />
+        )}
+      </div>
+    </div>
+  );
+};
+
+// 2. 客製化單選按鈕 (Custom Radio) - 視覺強化版
+const CustomRadio = ({ label, options, value, onChange, name }) => {
+  return (
+    <div className="mb-8">
+      <label className="block text-base font-bold text-obsidian mb-3">{label}</label>
+      <div className="flex flex-col gap-3">
+        {options.map((opt) => {
+          const isSelected = value === opt.value;
+          return (
+            <div 
+              key={opt.value}
+              onClick={() => onChange(opt.value)}
+              className={`
+                relative flex items-center p-4 rounded-xl cursor-pointer transition-all duration-200 border
+                ${isSelected 
+                  ? 'bg-slate/10 border-slate shadow-sm' // 選取時背景加深
+                  : 'bg-white border-pebble hover:border-mist hover:bg-white'}
+              `}
+            >
+              {/* 外圈：選取時直接填滿 Slate 色，未選取時為白色背景 */}
+              <div className={`
+                w-6 h-6 rounded-full border-2 flex items-center justify-center mr-3 transition-all duration-200
+                ${isSelected ? 'bg-slate border-slate' : 'bg-white border-mist'}
+              `}>
+                {/* 內圈：選取時變成白色點，未選取時消失 */}
+                <div className={`
+                  w-2.5 h-2.5 rounded-full bg-white shadow-sm transition-transform duration-200
+                  ${isSelected ? 'scale-100' : 'scale-0'}
+                `} />
+              </div>
+              <span className={`text-sm ${isSelected ? 'text-slate font-bold' : 'text-obsidian'}`}>
+                {opt.label}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+// 3. 客製化核取方塊 (Custom Checkbox) - 視覺強化版
+const CustomCheckbox = ({ label, checked, onChange, subLabel }) => {
+  return (
+    <div 
+      onClick={() => onChange(!checked)}
+      className={`
+        flex items-start p-3 -mx-3 rounded-xl cursor-pointer transition-colors group
+        ${checked ? 'bg-slate/10' : 'hover:bg-pebble/30'}
+      `}
+    >
+      {/* 方塊：選取時填滿 Slate 色，未選取時維持白色底 */}
+      <div className={`
+        mt-0.5 w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all duration-200 flex-shrink-0 shadow-sm
+        ${checked ? 'bg-slate border-slate' : 'bg-white border-mist group-hover:border-slate'}
+      `}>
+        {/* 打勾：加粗 strokeWidth，讓白色勾勾更明顯 */}
+        <Check size={16} strokeWidth={3} className={`text-white transition-transform duration-200 ${checked ? 'scale-100' : 'scale-0'}`} />
+      </div>
+      <div className="ml-3">
+        <span className={`block text-sm transition-colors ${checked ? 'text-slate font-bold' : 'text-obsidian'}`}>
+          {label}
+        </span>
+        {subLabel && <span className="text-xs text-smoke mt-1 block">{subLabel}</span>}
+      </div>
+    </div>
+  );
+};
+
+// 4. 客製化開關 (Custom Switch)
+const CustomSwitch = ({ label, checked, onChange }) => {
+  return (
+    <div className="flex items-center justify-between py-4">
+      <span className="text-obsidian font-medium text-sm">{label}</span>
+      <div 
+        onClick={() => onChange(!checked)}
+        className={`
+          w-12 h-7 rounded-full relative cursor-pointer transition-colors duration-300
+          ${checked ? 'bg-slate' : 'bg-mist/30'}
+        `}
+      >
+        <div className={`
+          absolute top-1 w-5 h-5 rounded-full bg-white shadow-sm transition-all duration-300
+          ${checked ? 'left-6' : 'left-1'}
+        `} />
+      </div>
+    </div>
+  );
+};
+
+// 5. 確認視窗 (Confirm Dialog)
+const ConfirmDialog = ({ isOpen, onClose, onConfirm, data, isSubmitting }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-obsidian/60 backdrop-blur-sm" onClick={isSubmitting ? null : onClose} />
+      <div 
+        className="relative w-full max-w-md bg-paper rounded-3xl shadow-2xl p-6 overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+        style={{ backgroundColor: theme.paper }}
+      >
+        <h3 className="text-xl font-bold text-obsidian mb-2">確認送出資料？</h3>
+        <p className="text-smoke text-sm mb-6">請確認以下資訊無誤，送出後將由專人與您聯繫。</p>
+        
+        <div className="bg-oatmeal/50 rounded-xl p-4 mb-6 max-h-[40vh] overflow-y-auto text-sm text-obsidian space-y-2">
+          <p><span className="text-mist">名稱：</span>{data.orgName}</p>
+          <p><span className="text-mist">聯絡：</span>{data.contact}</p>
+          <p><span className="text-mist">預算：</span>{data.budget}</p>
+          <p><span className="text-mist">主要功能：</span>{data.pages.join(', ')}</p>
+        </div>
+
+        <div className="flex gap-3 justify-end">
+          <button 
+            onClick={onClose}
+            disabled={isSubmitting}
+            className="px-6 py-2.5 rounded-full text-slate font-medium text-sm hover:bg-slate/10 transition-colors disabled:opacity-50"
+          >
+            返回修改
+          </button>
+          <button 
+            onClick={onConfirm}
+            disabled={isSubmitting}
+            style={{ backgroundColor: theme.slate }}
+            className="px-6 py-2.5 rounded-full text-white font-medium text-sm shadow-md hover:shadow-lg hover:brightness-110 transition-all flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+          >
+            {isSubmitting ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+            {isSubmitting ? '處理中...' : '確認送出'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// 6. 頁面標題元件
+const SectionTitle = ({ number, title, subtitle }) => (
+  <div className="mb-8 mt-10 first:mt-0">
+    <div className="flex items-center gap-3 mb-2">
+      <span 
+        className="flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold text-white"
+        style={{ backgroundColor: theme.sandstone }}
+      >
+        {number}
+      </span>
+      <h2 className="text-lg font-bold" style={{ color: theme.obsidian }}>{title}</h2>
+    </div>
+    {subtitle && <p className="text-sm ml-9" style={{ color: theme.smoke }}>{subtitle}</p>}
+  </div>
+);
+
+/**
+ * ------------------------------------------------------------------
+ * 🚀 主程式 (Main Application)
+ * ------------------------------------------------------------------
+ */
+export default function App() {
+  const [view, setView] = useState('form'); // form | success
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+
+  // 表單狀態
+  const [formData, setFormData] = useState({
+    orgName: '',
+    contact: '',
+    purpose: '',
+    targetAudience: '',
+    pages: [], // Checkbox array
+    dataNeeds: '', // Radio value
+    updateFreq: '', // Radio value
+    stylePref: '',
+    refSites: '',
+    dataOwnership: false, // Checkbox (Single)
+    budget: '', // Radio value
+    launchDateType: '', // 'none' | 'specific'
+    launchDateValue: '',
+    assets: [] // Checkbox array
+  });
+
+  // 輔助處理 Checkbox Group
+  const handleCheckboxGroup = (field, value) => {
+    setFormData(prev => {
+      const list = prev[field];
+      if (list.includes(value)) {
+        return { ...prev, [field]: list.filter(item => item !== value) };
+      } else {
+        return { ...prev, [field]: [...list, value] };
+      }
+    });
+  };
+
+  // 送出邏輯
+  const handleSubmitClick = () => {
+    // 簡易驗證
+    if (!formData.orgName || !formData.contact || !formData.dataOwnership) {
+      alert("請填寫必填欄位並同意資料授權條款。");
+      return;
+    }
+    setIsDialogOpen(true);
+  };
+
+  const handleFinalSubmit = async () => {
+    setIsSubmitting(true);
+    setSubmitError('');
+
+    try {
+      if (GAS_URL) {
+        // 使用 no-cors 模式，這是 GAS 簡單 POST 常見的做法
+        // 注意：no-cors 不會回傳 readable response，所以我們只能假設成功
+        await fetch(GAS_URL, {
+          method: 'POST',
+          mode: 'no-cors', 
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData),
+        });
+      } else {
+        // 模擬延遲 (若無 URL)
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        console.log("Form Data Submitted:", formData);
+      }
+      
+      setIsDialogOpen(false);
+      setView('success');
+      window.scrollTo(0, 0);
+    } catch (error) {
+      console.error("Submission Error:", error);
+      setSubmitError("連線發生錯誤，請稍後再試。");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // 成功頁面
+  if (view === 'success') {
+    return (
+      <div className="min-h-screen w-full flex items-center justify-center p-6" style={{ backgroundColor: theme.oatmeal }}>
+        <div className="w-full max-w-lg bg-paper rounded-3xl shadow-xl p-8 text-center animate-in fade-in slide-in-from-bottom-4 duration-700">
+          <div 
+            className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6"
+            style={{ backgroundColor: theme.sage + '33' }} // 20% opacity
+          >
+            <Check size={40} style={{ color: theme.slate }} />
+          </div>
+          <h2 className="text-2xl font-bold mb-4" style={{ color: theme.obsidian }}>需求已送出</h2>
+          <p className="text-smoke mb-8 leading-relaxed">
+            感謝您填寫需求表單。<br/>
+            我們已收到您的專案資訊（{formData.orgName}），<br/>
+            將於 24 小時內透過 {formData.contact} 與您聯繫。
+          </p>
+          
+          <button 
+            onClick={() => window.location.reload()}
+            className="px-8 py-3 rounded-full text-white font-bold tracking-wide shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5"
+            style={{ backgroundColor: theme.slate }}
+          >
+            返回首頁
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // 表單頁面
+  return (
+    <div className="min-h-screen w-full py-10 px-4 md:px-0" style={{ backgroundColor: theme.oatmeal }}>
+      <div className="max-w-2xl mx-auto">
+        
+        {/* Header */}
+        <div className="mb-10 text-center">
+          <h1 className="text-3xl font-extrabold mb-3" style={{ color: theme.slate }}>網站建置需求單</h1>
+          <p style={{ color: theme.mist }} className="text-sm uppercase tracking-widest font-bold">Web Design Request Form</p>
+        </div>
+
+        {/* Form Container */}
+        <div className="bg-paper rounded-[2rem] shadow-xl p-6 md:p-10 border border-white/50">
+          
+          {/* Part 1: 基本資訊 */}
+          <SectionTitle number="01" title="基本資訊與核心目標" />
+          
+          <CustomInput 
+            label="店家/組織/法人/網站名稱" 
+            placeholder="請輸入名稱"
+            value={formData.orgName}
+            onChange={(val) => setFormData({...formData, orgName: val})}
+            required
+          />
+          
+          <CustomInput 
+            label="網站中會刊登的聯繫方式 (ex: Email/Line/電話)" 
+            placeholder="備註：只需填寫有哪些，暫不需要提供ID等資訊"
+            value={formData.contact}
+            onChange={(val) => setFormData({...formData, contact: val})}
+            required
+          />
+
+          <CustomInput 
+            label="建立網頁的主要目的" 
+            placeholder="ex: 店家官網、表單介面、數位名片..."
+            value={formData.purpose}
+            onChange={(val) => setFormData({...formData, purpose: val})}
+          />
+
+          <CustomInput 
+            label="目標受眾" 
+            placeholder="ex: 既有客戶、訪客."
+            value={formData.targetAudience}
+            onChange={(val) => setFormData({...formData, targetAudience: val})}
+          />
+
+          <div className="h-px w-full my-8 bg-pebble" />
+
+          {/* Part 2: 功能與內容 */}
+          <SectionTitle number="02" title="功能與內容需求" subtitle="請勾選您需要的頁面結構與功能" />
+
+          <div className="mb-8">
+            <label className="block text-base font-bold text-obsidian mb-3">預計包含頁面 (可複選)</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4">
+              {['首頁', '關於我 / 公司簡介', '服務項目 / 產品列表', '部落格 / 文章列表', '聯絡我們'].map(page => (
+                <CustomCheckbox 
+                  key={page}
+                  label={page}
+                  checked={formData.pages.includes(page)}
+                  onChange={() => handleCheckboxGroup('pages', page)}
+                />
+              ))}
+              <div className="col-span-1 md:col-span-2 mt-2">
+                <CustomInput 
+                  label="其他頁面需求" 
+                  placeholder="如有其他需求請填寫"
+                  value={formData.otherPage || ''}
+                  onChange={(val) => setFormData({...formData, otherPage: val})}
+                />
+              </div>
+            </div>
+          </div>
+
+          <CustomRadio 
+            label="資料傳輸與儲存需求"
+            name="dataNeeds"
+            value={formData.dataNeeds}
+            onChange={(val) => setFormData({...formData, dataNeeds: val})}
+            options={[
+              { label: '不需要，單純展示資訊 (靜態網頁)', value: 'static' },
+              { label: '需要 (會員、留言、表單資料庫等)', value: 'dynamic' }
+            ]}
+          />
+
+          <CustomRadio 
+            label="預計更新頻率"
+            name="updateFreq"
+            value={formData.updateFreq}
+            onChange={(val) => setFormData({...formData, updateFreq: val})}
+            options={[
+              { label: '幾乎不更新', value: 'rare' },
+              { label: '定期更新', value: 'regular' },
+              { label: '高頻率自動更新', value: 'frequent' }
+            ]}
+          />
+
+          <div className="h-px w-full my-8 bg-pebble" />
+
+          {/* Part 3: 視覺風格 */}
+          <SectionTitle number="03" title="視覺與風格偏好" />
+
+          <CustomInput 
+            label="偏好的色調或風格" 
+            placeholder="ex: 極簡白、莫蘭迪色系、工業風..."
+            value={formData.stylePref}
+            onChange={(val) => setFormData({...formData, stylePref: val})}
+          />
+
+          <CustomInput 
+            label="參考網站連結" 
+            placeholder="請貼上 1-2 個您喜歡的網站連結"
+            multiline
+            value={formData.refSites}
+            onChange={(val) => setFormData({...formData, refSites: val})}
+          />
+
+          <div className="h-px w-full my-8 bg-pebble" />
+
+          {/* Part 4: 授權 */}
+          <SectionTitle number="04" title="帳號授權與資料歸屬" />
+          
+          <div className="p-5 rounded-xl bg-oatmeal/50 border border-pebble mb-4">
+            <p className="text-sm text-smoke leading-relaxed mb-4">
+              為了保障您的資料所有權與後續維護的便利性，我會將所有的程式碼、資料庫及部屬設定儲存在您的 Google 帳號中。您可以新申請一個專用的 Gmail ，結案後您可以自行更改密碼，這能確保網頁的所有權永遠屬於您。
+            </p>
+            <CustomCheckbox 
+              label="我了解並同意上述說明"
+              checked={formData.dataOwnership}
+              onChange={(checked) => setFormData({...formData, dataOwnership: checked})}
+            />
+          </div>
+
+          <div className="h-px w-full my-8 bg-pebble" />
+
+          {/* Part 5: 預算與時程 */}
+          <SectionTitle number="05" title="預算與時程" />
+
+          <CustomRadio 
+            label="預算區間"
+            name="budget"
+            value={formData.budget}
+            onChange={(val) => setFormData({...formData, budget: val})}
+            options={[
+              { label: 'NT$ 1,500 (僅首頁)', value: '1500' },
+              { label: 'NT$ 5,000 以下', value: 'under_5000' },
+              { label: 'NT$ 5,000 - NT$ 15,000', value: '5000_15000' },
+              { label: 'NT$ 15,000 - NT$ 30,000', value: '15000_30000' },
+              { label: 'NT$ 30,000 以上', value: 'above_30000' }
+            ]}
+          />
+
+          <div className="mb-8">
+            <label className="block text-base font-bold text-obsidian mb-3">預計上線時間</label>
+            <CustomRadio 
+              label=""
+              name="launchDateType"
+              value={formData.launchDateType}
+              onChange={(val) => setFormData({...formData, launchDateType: val})}
+              options={[
+                { label: '無具體時間要求', value: 'none' },
+                { label: '有，請選擇日期', value: 'specific' }
+              ]}
+            />
+            {formData.launchDateType === 'specific' && (
+              <div className="ml-2 animate-in fade-in slide-in-from-top-2">
+                <input 
+                  type="date" 
+                  className="w-full p-4 rounded-xl bg-white border-2 border-slate text-obsidian outline-none"
+                  value={formData.launchDateValue}
+                  onChange={(e) => setFormData({...formData, launchDateValue: e.target.value})}
+                />
+              </div>
+            )}
+          </div>
+
+          <div className="mb-8">
+            <label className="block text-base font-bold text-obsidian mb-3">現成素材 (可複選)</label>
+            <div className="flex flex-col gap-1">
+              {['文案內容', '標誌 (Logo)', '圖片 / 影片', '目前暫無，需討論'].map(asset => (
+                <CustomCheckbox 
+                  key={asset}
+                  label={asset}
+                  checked={formData.assets.includes(asset)}
+                  onChange={() => handleCheckboxGroup('assets', asset)}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="mt-12 pt-6 border-t border-pebble flex justify-end">
+             <button
+              onClick={handleSubmitClick}
+              className="group relative px-8 py-4 rounded-full text-white font-bold text-lg shadow-lg overflow-hidden transition-transform transform active:scale-95"
+              style={{ backgroundColor: theme.slate }}
+             >
+               <span className="relative z-10 flex items-center gap-2">
+                 預覽並送出 <ChevronRight size={20} />
+               </span>
+               <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
+             </button>
+          </div>
+
+        </div>
+        
+        {/* Footer info */}
+        <div className="text-center mt-8 pb-8 text-mist text-xs">
+          &copy; {new Date().getFullYear()} Studio Name. All rights reserved.
+        </div>
+
+      </div>
+
+      {/* Dialog */}
+      <ConfirmDialog 
+        isOpen={isDialogOpen} 
+        onClose={() => setIsDialogOpen(false)}
+        onConfirm={handleFinalSubmit}
+        data={formData}
+        isSubmitting={isSubmitting}
+      />
+      
+    </div>
+  );
+}
